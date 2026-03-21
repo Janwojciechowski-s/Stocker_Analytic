@@ -1,25 +1,26 @@
 #include "FileDataProvider.h"
 #include <fstream>
-#include <stdexcept>
 #include <sstream>
 DataResult FileDataProvider::get_data(const std::string& ticker)
 {
-    DataResult to_return;
-    std::vector<StockRecord> records;
-    std::vector<std::string> warnings;
+    DataResult stock_data;
+    std::string temp_line;
 
-    std::string filename = ticker + ".csv";
-    std::ifstream file(filename); 
+    std::string file_name = ticker + ".csv";
+    std::ifstream file(file_name); 
 
     if (!file.is_open()) {
-        throw std::runtime_error("Critical error: could not open: " + ticker);
+        throw std::runtime_error("Critical error: could not open file: " + file_name);
     }
 
-    std::string temp_line;
-    std::getline(file, temp_line);
+    if (!std::getline(file, temp_line)) {
+        stock_data.warnings.push_back("File " + file_name + " is empty.");
+        return stock_data;
+    }
 
     if (file.peek() == std::ifstream::traits_type::eof()) {
-        throw std::runtime_error("Critical error: " + filename + " is empty!");
+        stock_data.warnings.push_back("File " + file_name + " contains only header.");
+        return stock_data;
     }
 
     int line_num = 1;
@@ -51,15 +52,13 @@ DataResult FileDataProvider::get_data(const std::string& ticker)
             if (!std::getline(ss, temp_help, ',')) throw std::runtime_error("Missing Volume");
             temp_stockrecord.volume = std::stoll(temp_help);
 
-            records.push_back(temp_stockrecord);
+            stock_data.records.push_back(temp_stockrecord);
 
         }
         catch (const std::exception& e) {
         std::string warning = "Line " + std::to_string(line_num) + " error: " + e.what();
-        warnings.push_back(warning);
+        stock_data.warnings.push_back(warning);
         }
     }
-    to_return.records = records;
-    to_return.warnings = warnings;
-    return to_return;
+    return stock_data;
 }
