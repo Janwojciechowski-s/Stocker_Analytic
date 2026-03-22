@@ -1,31 +1,31 @@
 #include "FileDataProvider.h"
 #include <fstream>
 #include <sstream>
-DataResult FileDataProvider::get_data(const std::string& ticker)
+DataResult FileDataProvider::get_data(const std::string& csv_data)
 {
     DataResult stock_data;
     std::string temp_line;
 
-    std::string file_name = ticker + ".csv";
-    std::ifstream file(file_name); 
+    std::stringstream input(csv_data);
 
-    if (!file.is_open()) {
-        throw std::runtime_error("Critical error: could not open file: " + file_name);
-    }
-
-    if (!std::getline(file, temp_line)) {
-        stock_data.warnings.push_back("File " + file_name + " is empty.");
+    if (input.str().empty()) { 
+        stock_data.warnings.push_back("Error: received empty data string.");
         return stock_data;
     }
 
-    if (file.peek() == std::ifstream::traits_type::eof()) {
-        stock_data.warnings.push_back("File " + file_name + " contains only header.");
+    if (!std::getline(input, temp_line)) {
+        stock_data.warnings.push_back("Data stream is empty or invalid.");
+        return stock_data;
+    }
+
+    if (input.peek() == std::stringstream::traits_type::eof()) {
+        stock_data.warnings.push_back("Data contains only header.");
         return stock_data;
     }
 
     int line_num = 1;
 
-    while (std::getline(file, temp_line))
+    while (std::getline(input, temp_line))
     {   
         ++line_num;
         if (temp_line.empty()) continue;

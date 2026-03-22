@@ -8,5 +8,6 @@ class FileDataProvider : public IDataProvider {
 public:
 	virtual ~FileDataProvider() = default;
 	virtual DataResult get_data(const std::string& ticker) override;
+
 };
 #endif // !FILEDATAPROVIDER_H  
