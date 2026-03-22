@@ -1,5 +1,5 @@
-#ifndef DATAPROVIDER_H    
-#define DATAPROVIDER_H
+#ifndef IDATAPROVIDER_H    
+#define IDATAPROVIDER_H
 #include<vector>
 #include <string>
 #include "StockRecord.h"
@@ -14,5 +14,5 @@ public:
 	virtual ~IDataProvider() {};
 	virtual DataResult get_data(const std::string& ticker) = 0;
 }; 
-#endif // !DATAPROVIDER_H 
+#endif // !IDATAPROVIDER_H 
 
