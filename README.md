@@ -35,7 +35,9 @@ Once the server is running (port 18080), you can send POST requests to `/analyze
 Here are examples using **PowerShell** (recommended for Windows):
 
 Send stock data directly as a CSV string inside a JSON object:
-1) all good
+
+1) Valid JSON request with CSV data parameter:
+   
 Invoke-RestMethod -Uri http://localhost:18080/analyze -Method Post -Body '{
     "mode": "manual",
     "csv_data": "timestamp,open,high,low,close,volume\n2024-03-20,150.0,155.0,149.0,153.5,100000\n2024-03-21,153.5,158.0,152.0,157.2,120000"
