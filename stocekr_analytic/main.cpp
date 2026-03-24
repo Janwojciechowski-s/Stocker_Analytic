@@ -45,10 +45,17 @@ int main()
 				return crow::response(400, std::string(e.what()));
 			}
 			if (data_to_analyze.records.empty()) {
-				return crow::response(200, "No data found for given input (wrong ticker or empty csv");   //chagne later to json (succes == false)
+				nlohmann::json error_response;
+				error_response["status"] = "error";
+				error_response["message"] = "No data found for given input";
+				error_response["warnings"] = data_to_analyze.warnings;	//chagne later to json (succes == false)
+				return crow::response(200, error_response.dump());
 			}
-
-			return crow::response(200, "Data received and ready for analysis!");
+			nlohmann::json good_respone;
+			good_respone["status"] = "succes";
+			good_respone["message"] = "Data received and ready for analysis!";
+			good_respone["warnings"] = data_to_analyze.warnings;
+			return crow::response(200, good_respone.dump());
 
 		} catch (const std::exception& e) {
 			return crow::response(400, "Error: " + std::string(e.what()));

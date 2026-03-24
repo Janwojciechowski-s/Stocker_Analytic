@@ -1,6 +1,8 @@
 #include "FileDataProvider.h"
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+
 DataResult FileDataProvider::get_data(const std::string& csv_data)
 {
     DataResult stock_data;
@@ -49,7 +51,8 @@ DataResult FileDataProvider::get_data(const std::string& csv_data)
             if (!std::getline(ss, temp_help, ',')) throw std::runtime_error("Missing Close");
             temp_stockrecord.close = std::stod(temp_help);
 
-            if (!std::getline(ss, temp_help, ',')) throw std::runtime_error("Missing Volume");
+            if (!std::getline(ss, temp_help)) throw std::runtime_error("Missing Volume");
+            temp_help.erase(std::remove(temp_help.begin(), temp_help.end(), '\r'), temp_help.end());
             temp_stockrecord.volume = std::stoll(temp_help);
 
             stock_data.records.push_back(temp_stockrecord);
