@@ -1,82 +1,111 @@
 #include "Analyzer.h"
 #include <stdexcept>
 #include <numeric>
+#include <cmath>
 
-double Analyzer::calculate_mean(const std::vector<StockRecord>& records) const
-{
-    if (records.size() < 30) {
-        throw std::invalid_argument("Too small data analyze (min. 30 records required)");
+double Analyzer::calculate_mean(const std::vector<double>& data) const {
+    if (data.empty()) {
+        throw std::invalid_argument("Mean calculation failed: data vector is empty");
     }
-
-    size_t skipped_count = 0;
-    double sum = std::accumulate(records.begin(), records.end(), 0.0, [&skipped_count](double s, const StockRecord& r) {
-        if (r.open == 0.0 || r.close == 0.0) {
-            ++skipped_count;
-            return s;
-        }
-        return s + (r.open + r.close);
-        });
-
-    size_t valid_count = (records.size() - skipped_count);
-    if (valid_count == 0) {
-        throw std::runtime_error("All records open/close price were 0!");
-    }
-    return sum / (2.0 * valid_count);
+    return std::accumulate(data.begin(), data.end(), 0.0) / data.size();
 }
 
-double Analyzer::moving_average_50(const std::vector<StockRecord>& records) const
+std::vector<double> Analyzer::get_log_returns(const std::vector<StockRecord>& records, int days) const
 {
-    if (records.size() < 50) {
-        throw std::runtime_error("Too few record for 50 days moving average");
+    std::vector<double> log_returns;
+    if (records.size() < days) {
+        throw std::runtime_error("Too few records, requaier at least " + std::to_string(days));
     }
+    int invalid_samples = 0;
+    int valid_samples = 0;
+    for (auto it = records.rbegin(); it + 1 != records.rend(); ++it) {
+        if (valid_samples == days) {
+            break;
+        }
+        if (invalid_samples >= days + 10) {
+            throw std::runtime_error("Too many empty records (get_log_return)");
+        }
+
+        if (it->close == 0 || (it+1)->close == 0) {
+            ++invalid_samples;
+            continue;
+        }
+        double temp = std::log(it->close / (it+1)->close);
+        log_returns.push_back(temp);
+        ++valid_samples;
+    }
+    if (valid_samples < days) {
+        throw std::runtime_error("Failed to collect enough log returns due to gaps in price history");
+    }
+    return log_returns;
+}
+
+double Analyzer::moving_average(const std::vector<StockRecord>& records, int time) const
+{
+    if (records.size() < time) {
+        throw std::runtime_error("Too few record for " + std::to_string(time) + " days moving average");
+    }
+
     int valid_samples = 0;
     double sum = 0.0;
     int procced = 0;
 
     for (auto it = records.rbegin(); it != records.rend(); ++it) {
-        if (it->open > 0.0 || it->close > 0.0) {
+        if (it->open > 0.0 && it->close > 0.0) {
             sum += it->close + it->open;
             ++valid_samples;
         }
         ++procced;
 
-        if (valid_samples == 50) break;
+        if (valid_samples == time) break;
 
-        if (procced == 70) {
-            throw std::runtime_error("Too many empty records in the last 70 days to calcucate moving average (50)");
+        if (procced > valid_samples + 15) {
+            throw std::runtime_error("Too many empty records in the last " + std::to_string(time+30) +
+                " days to calcucate moving average");
         }
     }
-    if (valid_samples < 50) {
-        throw std::runtime_error("Could not find 50 valid records in history for moving average");
+    if (valid_samples < time) {
+        throw std::runtime_error("Could not find " + std::to_string(time) + " valid records in history for moving average");
     }
-
-    return  sum / (2.0 * valid_samples);
+    return sum / (2.0 * valid_samples);
 }
 
-double Analyzer::calculate_standard_deviation(const std::vector<StockRecord>& records) const
+double Analyzer::RSI(const std::vector<StockRecord>& records) const
 {
-    double mean = calculate_mean(records); //can be exeption (catch in main)
-    size_t skipped_count = 0;
-
-
-    double sum = std::accumulate(records.begin(), records.end(), 0.0, [&skipped_count,mean](double s, const StockRecord& r) {
-        if (r.open == 0.0 || r.close == 0.0) {
-            ++skipped_count;
-            return s;
-        }
-        double daily_price = (r.open + r.close) / 2.0;
-        double diff = daily_price - mean;
-
-        return s + (diff * diff); 
-        });
-    
-    size_t valid_count = records.size() / skipped_count;
-
-    if (valid_count == 0) {
-        throw std::runtime_error("All records open/close price were 0!");
+    if (records.size() < 15) {
+        throw std::runtime_error("Too few records to calculate RSI");
     }
+    double loss = 0.0;
+    double gain = 0.0;
+    for (int i = 0; i < 14; ++i) {
+        auto current = records.rbegin() + i;
+        auto previus = records.rbegin() + i + 1;
+        if (current->close == 0.0 || previus->close == 0.0) {
+            throw std::runtime_error("Incomplete data: RSI requires 15 valid records");
+        }
+        double diff = current->close - previus->close;
+        if (diff < 0) {
+            loss += abs(diff);
+        }
+        else {
+            gain += abs(diff);
+        }
+    }
+    if (loss == 0) return 100;
 
-    double variance = sum - records.size();
+    double RS = gain / loss;
+    return 100 - (100 / (1 + RS));
+}
 
+double Analyzer::calculate_standard_deviation(const std::vector<double>& data, double mean) const
+{
+    if (data.size() < 2) {
+        throw std::runtime_error("Standart deviation requiare at least 2 sampels");
+    }
+    double sum_sq = std::accumulate(data.begin(), data.end(), 0.0, [mean](double s, const double d) {
+        double diff = mean - d;
+        return s + (diff * diff);
+        });
+    double variance = sum_sq / (data.size() - 1);
     return sqrt(variance);
 };
