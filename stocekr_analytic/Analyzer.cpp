@@ -40,9 +40,9 @@ std::vector<double> Analyzer::get_log_returns(const std::vector<StockRecord>& re
     return log_returns;
 }
 
-double Analyzer::moving_average(const std::vector<StockRecord>& records, int time) const
+double Analyzer::moving_average(const std::vector<StockRecord>& records, int time, int offset = 0) const
 {
-    if (records.size() < time) {
+    if (static_cast<int>(records.size()) < time + offset) {
         throw std::runtime_error("Too few records for " + std::to_string(time) + " days moving average");
     }
 
@@ -50,7 +50,7 @@ double Analyzer::moving_average(const std::vector<StockRecord>& records, int tim
     double sum = 0.0;
     int processed = 0;
 
-    for (auto it = records.rbegin(); it != records.rend(); ++it) {
+    for (auto it = records.rbegin() + offset; it != records.rend(); ++it) {
         if (it->open > 0.0 && it->close > 0.0) {
             sum += it->close + it->open;
             ++valid_samples;
@@ -108,4 +108,42 @@ double Analyzer::calculate_standard_deviation(const std::vector<double>& data, d
         });
     double variance = sum_sq / (data.size() - 1);
     return sqrt(variance);
-};
+}
+std::string Analyzer::trend_signal(const std::vector<StockRecord>& records) const
+{
+    int count = 0;
+    double moving_awerage_50 = moving_average(records, 50);
+    double moving_awerage_200 = moving_average(records, 200);
+
+    double diff = std::abs(moving_awerage_50 - moving_awerage_200);
+    double epsilon = records.rbegin()->close * 0.001;
+    
+    if (diff<epsilon) {
+        double moving_awerage_50_yesterday = moving_average(records, 50, 1);
+        double moving_awerage_200_yesterday = moving_average(records, 200, 1);
+        (moving_awerage_50_yesterday < moving_awerage_200_yesterday) ? count +=2 : count -= 2;
+    }
+    else {
+        (moving_awerage_50 > moving_awerage_200) ? ++count : --count;
+    }
+    double rsi = RSI(records);
+    if (rsi > 70)
+        --count;
+    else if (rsi < 30)
+        ++count;
+
+    Simulator simulator;
+    std::vector<double> monte_carlo = simulator.monte_carlo_GBM(records);
+    if (monte_carlo[1] >= 65.0)
+        ++count;
+    else if (monte_carlo[1] <= 35.0)
+        --count;
+    
+    if (count >= 3) return "STRONG BUY";
+    if (count >= 1) return "BUY";
+    if (count <= -3) return "STRONG SELL";
+    if (count <= -1) return "SELL";
+
+    return "HOLD";
+}
+
