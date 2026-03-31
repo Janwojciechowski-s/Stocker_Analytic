@@ -12,6 +12,7 @@ Program to analyze stock market data and simulate prices.
 - **To do:** Sending results in JSON format
 
 ## Architecture
+* **AnalysisManager**: Coordinates data flow between providers and workers.
 * **IDataProvider**: Main interface for data.
 * **NetworkDataProvider**: Gets data from API (server alphavantage) and parses.
 * **FileDataProvider**: Parses CSV data sent inside JSON requests.
