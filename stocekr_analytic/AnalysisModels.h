@@ -2,29 +2,29 @@
 #define ANALYSISMODELS_H 
 #include <string>
 
-struct meta_data {
-    std::string ticker;
-    int sample_size;
-    std::string last_data_point;
-    std::string generated_at;
-    std::string currency;
-    double last_price;
+struct AnalysisSettings {
+    bool include_technical = true;
+    bool include_monte_carlo = true;
+    int num_simulations = 1000;
+    int num_days_ahead = 180;
 };
 
-struct PriceStats {
-    double max_drawdown;
-    double volatility;
+struct MetaData {
+    int sample_size;
+    std::string generated_at;
+    double last_price;
 };
 
 struct TechnicalAnalysis
 {
+    double volatility;
     double sma50;
     double sma200;
     double rsi;
-    std::string ternd_signal;
+    std::string trend_signal;
 };
 
-struct monte_carlo {
+struct SimulationMonteCarlo {
     double median_future_price;
     double prob_of_profit;
     double conf_interval_low;

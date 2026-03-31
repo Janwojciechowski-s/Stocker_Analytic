@@ -13,13 +13,15 @@ using json = nlohmann::json;
 int main()
 {
 	crow::SimpleApp app;
+	JsonResponse response;
 
 	CROW_ROUTE(app, "/analyze").methods(crow::HTTPMethod::POST)
 		([&](const crow::request& req) {
 		try {
 			auto j = json::parse(req.body);
 			if (!j.contains("mode")) {
-				return crow::response(400, "Error: no \"mode\" provided");
+				std::string message = "Error: no \"mode\" provided";
+				return crow::response(400, response.error_response_400(message));
 			}
 			std::unique_ptr<IDataProvider> provider;
 			std::string input_for_provider;
@@ -34,7 +36,8 @@ int main()
 				input_for_provider = j.at("csv_data");
 			}
 			else {
-				return crow::response(400, "Error: Invalid mode. Use 'auto' or 'manual'.");
+				std::string message = "Error: Invalid mode. Use 'auto' or 'manual'.";
+				return crow::response(400, response.error_response_400(message));
 			}
 
 			DataResult data_to_analyze;
@@ -45,19 +48,15 @@ int main()
 				return crow::response(400, std::string(e.what()));
 			}
 			if (data_to_analyze.records.empty()) {
-				nlohmann::json error_response;
-				error_response["status"] = "error";
-				error_response["message"] = "No data found for given input";
-				error_response["warnings"] = data_to_analyze.warnings;	//chagne later to json (succes == false)
-				return crow::response(200, error_response.dump());
+
+				std::string message = "No data found for given input";
+				data_to_analyze.warnings;	
+				return crow::response(200, response.error_response_200(data_to_analyze.warnings, message));
 			}
-			nlohmann::json good_respone;
-			good_respone["status"] = "succes";
-			good_respone["message"] = "Data received and ready for analysis!";
-			good_respone["warnings"] = data_to_analyze.warnings;
-			return crow::response(200, good_respone.dump());
+			
 
 		} catch (const std::exception& e) {
+
 			return crow::response(400, "Error: " + std::string(e.what()));
 		}
 		});

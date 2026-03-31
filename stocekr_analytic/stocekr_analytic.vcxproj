@@ -127,13 +127,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnalysisManager.cpp" />
     <ClCompile Include="Analyzer.cpp" />
     <ClCompile Include="FileDataProvider.cpp" />
+    <ClCompile Include="JsonFormatter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NetworkDataProvider.cpp" />
     <ClCompile Include="Simulator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnalysisManager.h" />
     <ClInclude Include="AnalysisModels.h" />
     <ClInclude Include="Analyzer.h" />
     <ClInclude Include="IDataProvider.h" />

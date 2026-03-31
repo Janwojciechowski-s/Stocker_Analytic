@@ -40,7 +40,7 @@ std::vector<double> Analyzer::get_log_returns(const std::vector<StockRecord>& re
     return log_returns;
 }
 
-double Analyzer::moving_average(const std::vector<StockRecord>& records, int time, int offset = 0) const
+double Analyzer::moving_average(const std::vector<StockRecord>& records, int time, int offset) const
 {
     if (static_cast<int>(records.size()) < time + offset) {
         throw std::runtime_error("Too few records for " + std::to_string(time) + " days moving average");
@@ -109,7 +109,7 @@ double Analyzer::calculate_standard_deviation(const std::vector<double>& data, d
     double variance = sum_sq / (data.size() - 1);
     return sqrt(variance);
 }
-std::string Analyzer::trend_signal(const std::vector<StockRecord>& records) const
+std::string Analyzer::trend_signal(const std::vector<StockRecord>& records, const std::vector<double>& monte_carlo_result) const
 {
     int count = 0;
     double moving_awerage_50 = moving_average(records, 50);
@@ -132,18 +132,27 @@ std::string Analyzer::trend_signal(const std::vector<StockRecord>& records) cons
     else if (rsi < 30)
         ++count;
 
-    Simulator simulator;
-    std::vector<double> monte_carlo = simulator.monte_carlo_GBM(records);
-    if (monte_carlo[1] >= 65.0)
-        ++count;
-    else if (monte_carlo[1] <= 35.0)
-        --count;
-    
-    if (count >= 3) return "STRONG BUY";
-    if (count >= 1) return "BUY";
-    if (count <= -3) return "STRONG SELL";
-    if (count <= -1) return "SELL";
+    if (static_cast<int>(monte_carlo_result.size()) < 2) {
+        if (count >= 2) return "STRONG BUY";
+        if (count >= 1) return "BUY";
+        if (count <= -2) return "STRONG SELL";
+        if (count <= -1) return "SELL";
 
-    return "HOLD";
+        return "HOLD";
+    }
+    else
+    {
+        if (monte_carlo_result[1] >= 65.0)
+            ++count;
+        else if (monte_carlo_result[1] <= 35.0)
+            --count;
+
+        if (count >= 3) return "STRONG BUY";
+        if (count >= 1) return "BUY";
+        if (count <= -3) return "STRONG SELL";
+        if (count <= -1) return "SELL";
+
+        return "HOLD";
+    }
 }
 

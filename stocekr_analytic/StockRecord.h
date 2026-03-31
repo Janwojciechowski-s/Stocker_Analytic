@@ -16,14 +16,12 @@ struct StockRecord {
 };
 
 struct FinalAnalysisResponse {
-    meta_data metadata;
+    MetaData meta_data;
 
     bool success = false;
     std::vector<std::string> warnings;
-    std::string message = "Initial message";
-    std::optional<PriceStats> stats;
-    std::optional<TechnicalAnalysis> technical;
-    std::optional<monte_carlo> simulation;
+    std::optional<TechnicalAnalysis> technical_analysis;
+    std::optional<SimulationMonteCarlo> simulation_monte_carlo;
 };
-#endif // !STOCKRECORD_H
+#endif // !JSONFORMATER
 

@@ -30,6 +30,12 @@
     <ClCompile Include="Simulator.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="JsonFormatter.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="AnalysisManager.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StockRecord.h">
@@ -54,6 +60,9 @@
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
     <ClInclude Include="AnalysisModels.h">
+      <Filter>Pliki źródłowe</Filter>
+    </ClInclude>
+    <ClInclude Include="AnalysisManager.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
   </ItemGroup>
