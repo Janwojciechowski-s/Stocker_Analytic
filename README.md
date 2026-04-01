@@ -2,14 +2,15 @@
 
 Program to analyze stock market data and simulate prices.
 
-**Status:** Working / Active Development
+**Status:** Working / Ready for Testing
 
 ## Progress
 - **Done:** Data from API (AlphaVantage)
 - **Done:** Data from CSV (JSON request)
-- **To do:** Moving averages and RSI
-- **To do:** Monte Carlo simulation
-- **To do:** Sending results in JSON format
+- **Done:** Moving averages and RSI
+- **Done:** Multithreaded Monte Carlo simulation (GBM Model)
+- **Done:** Sending results in JSON format
+- **To do:** Add collection of example queries and test datasets.
 
 ## Architecture
 * **AnalysisManager**: Coordinates data flow between providers and workers.
@@ -27,11 +28,13 @@ Program to analyze stock market data and simulate prices.
 * **Tools**: Visual Studio 2022, vcpkg
 
 ## How to run
-1. Open `stocekr_analytic.sln` in Visual Studio.
-2. Open terminal in Visual Studio and type: `vcpkg install`.
+1. Open `stocker_analytic.sln` in Visual Studio.
+2. Visual Studio should automatically restore all libraries from vcpkg (ensure vcpkg is integrated and Manifest Mode is enabled).
 3. Press **F5** to start the server.
 
-## Usage API Testing
+## Usage API Testing 
+*Note: This section is currently being updated. Comprehensive test datasets and example scripts will be available soon.*
+
 Once the server is running (port 18080), you can send POST requests to `/analyze`. 
 Here are examples using **PowerShell** (recommended for Windows):
 
