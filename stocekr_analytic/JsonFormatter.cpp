@@ -25,7 +25,7 @@ std::string JsonResponse::correct_response(const FinalAnalysisResponse& data) co
 {
 	nlohmann::json response;
 
-	response["success"] = data.success;
+	response["success"] = true;
 	response["warnings"] = data.warnings;
 
 	response["meta_data"] = {

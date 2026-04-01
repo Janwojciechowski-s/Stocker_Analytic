@@ -1,5 +1,7 @@
 #include "AnalysisManager.h"
- 
+#include <format>
+#include <chrono>
+
 
 MetaData AnalysisManager::build_metadata(const std::vector<StockRecord>& records) const
 {
@@ -7,15 +9,13 @@ MetaData AnalysisManager::build_metadata(const std::vector<StockRecord>& records
 
 	to_return.last_price = (records.empty()) ? 0.0 : records.rbegin()->close;
 	to_return.sample_size = static_cast<int>(records.size());
-	to_return.generated_at = "do function later";
-
+	to_return.generated_at = std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now());
 	return to_return;
 }
 
 FinalAnalysisResponse AnalysisManager::process_everything(DataResult& data, const AnalysisSettings& settings) const
 {
 	FinalAnalysisResponse response;
-	response.warnings = std::move(data.warnings);
 	
 	response.meta_data = build_metadata(data.records);
 
@@ -47,12 +47,14 @@ FinalAnalysisResponse AnalysisManager::process_everything(DataResult& data, cons
 			for (const auto& r : data.records) 
 				close_prices.push_back(r.close);
 
-			double mean = analyzer_worker.calculate_mean(close_prices);
-			temp_technical_analysis.volatility = analyzer_worker.calculate_standard_deviation(close_prices,mean);
+			std::vector<double> log_returns = analyzer_worker.get_log_returns(data.records, 0.9* static_cast<double>(data.records.size()));
+
+			double mean = analyzer_worker.calculate_mean(log_returns);
+			temp_technical_analysis.volatility = analyzer_worker.calculate_standard_deviation(log_returns,mean);
 			temp_technical_analysis.rsi = analyzer_worker.RSI(data.records);
 			temp_technical_analysis.sma50 = analyzer_worker.moving_average(data.records, 50);
 			temp_technical_analysis.sma200 = analyzer_worker.moving_average(data.records, 200);
-
+			
 			if (settings.include_monte_carlo && response.simulation_monte_carlo.has_value()) {
 				std::vector<double> temp_monte_carlo = {
 				response.simulation_monte_carlo->median_future_price,
@@ -72,5 +74,12 @@ FinalAnalysisResponse AnalysisManager::process_everything(DataResult& data, cons
 			response.warnings.push_back(e.what());
 		}
 	}
+
+	response.warnings.insert(
+		response.warnings.end(),
+		std::make_move_iterator(data.warnings.begin()),
+		std::make_move_iterator(data.warnings.end())
+	);
+
 	return response;
 }

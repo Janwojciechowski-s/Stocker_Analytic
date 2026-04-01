@@ -6,6 +6,7 @@
 #include "JsonFormatter.h" 
 #include <iostream>
 #include <memory>
+#include "AnalysisManager.h"
 
 using json = nlohmann::json;
 
@@ -50,11 +51,27 @@ int main()
 			if (data_to_analyze.records.empty()) {
 
 				std::string message = "No data found for given input";
-				data_to_analyze.warnings;	
 				return crow::response(200, response.error_response_200(data_to_analyze.warnings, message));
 			}
-			
+			try {
+				AnalysisManager manager;
+				AnalysisSettings settings;
 
+
+				settings.include_technical = j.value("include_technical_analysis", false);
+				settings.include_monte_carlo = j.value("include_monte_carlo", false);
+
+				settings.num_simulations = j.value("num_simulations", 10000);
+				settings.num_days_ahead = j.value("num_days_ahead", 180);
+
+				FinalAnalysisResponse final_response = manager.process_everything(data_to_analyze, settings);
+
+				return crow::response(200, response.correct_response(final_response));
+			}			
+			catch (const std::exception& e) {
+				std::string message = "Critical error: verify input data and parameters.";
+				return crow::response(200, response.error_response_200(data_to_analyze.warnings, message));
+			}
 		} catch (const std::exception& e) {
 
 			return crow::response(400, "Error: " + std::string(e.what()));
