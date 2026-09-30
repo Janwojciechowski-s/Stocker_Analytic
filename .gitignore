@@ -1,4 +1,17 @@
-# Visual Studio
+# CMake build output
+build/
+bin/
+CMakeUserPresets.json
+
+# VS Code
+.vscode/
+
+# binary files
+*.o
+*.a
+*.so
+
+# Visual Studio / Windows 
 .vs/
 out/
 x64/
