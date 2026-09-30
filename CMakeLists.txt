@@ -22,28 +22,40 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nlohmann_json Crow)
 
 
-add_library(stocker_core)
-target_include_directories(stocker_core PUBLIC src/)
-
-target_sources(stocker_core PRIVATE
-    src/AnalysisManager.cpp
+add_library(stocker_analytics)
+target_include_directories(stocker_analytics PUBLIC src/)
+target_sources(stocker_analytics PRIVATE
     src/Analyzer.cpp
-    src/FileDataProvider.cpp
-    src/JsonFormatter.cpp
-    src/NetworkDataProvider.cpp
     src/Simulator.cpp
 )
 
-target_link_libraries(stocker_core PUBLIC
+
+add_library(stocker_data)
+target_include_directories(stocker_data PUBLIC src/)
+target_sources(stocker_data PRIVATE
+    src/NetworkDataProvider.cpp
+    src/FileDataProvider.cpp
+    src/JsonFormatter.cpp
+)
+target_link_libraries(stocker_data PUBLIC
     nlohmann_json::nlohmann_json
     CURL::libcurl
 )
 
+add_library(stocker_core)
+target_include_directories(stocker_core PUBLIC src/)
+target_sources(stocker_core PRIVATE
+    src/AnalysisManager.cpp
+)
+target_link_libraries(stocker_core PRIVATE
+    stocker_analytics
+)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     stocker_core 
+    stocker_data
     Crow::Crow
     Threads::Threads
 )
