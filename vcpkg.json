@@ -1,9 +1,0 @@
-{
-  "name": "stock-analysis",
-  "version": "0.1.0",
-  "dependencies": [
-    "crow",
-    "nlohmann-json",
-    "curl"
-  ]
-}
