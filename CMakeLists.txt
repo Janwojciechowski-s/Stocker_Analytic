@@ -19,7 +19,11 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
     GIT_TAG        v1.2.0
 )
-FetchContent_MakeAvailable(nlohmann_json Crow)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+FetchContent_MakeAvailable(nlohmann_json Crow googletest)
 
 
 add_library(stocker_analytics)
@@ -60,4 +64,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Threads::Threads
 )
 
+enable_testing()
+add_subdirectory(tests)
 
