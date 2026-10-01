@@ -2,6 +2,7 @@
 #include "Analyzer.h"
 #include <cmath>
 
+
 TEST(AnalyzerTests_CalculateMean, ValidData_ReturnsCorrectMean) {
 
     Analyzer analyzer;
@@ -50,6 +51,7 @@ TEST(AnalyzerTests_GetLogReturns, ValidData_ReturnCorrectLogVector){
 }
 
 TEST(AnalyzerTests_GetLogReturns, TooFewRecords_ThrowRuntimeError) {
+
     Analyzer analyzer;
     const std::vector<StockRecord> data { 
         {.close = 10.0},
@@ -57,4 +59,49 @@ TEST(AnalyzerTests_GetLogReturns, TooFewRecords_ThrowRuntimeError) {
     };
 
     EXPECT_THROW(analyzer.get_log_returns(data, 2), std::runtime_error);
+}
+
+TEST(AnalyzerTests_MovingAverage, ValidData_ReturnCorrectMovingAverage) {
+
+    Analyzer analyzer;
+    const std::vector<StockRecord> data {
+        {.open = 10.0, .close = 15.0},
+        {.open = 15.0, .close = 13.0},
+        {.open = 13.0, .close = 12.0}
+    };
+    EXPECT_DOUBLE_EQ(analyzer.moving_average(data,3,0) , 13);
+}
+
+TEST(AnalyzerTests_MovingAverage, TooFewRecords_ThrowRuntimeError) {
+
+    Analyzer analyzer;
+    const std::vector<StockRecord> data {
+        {.open = 10.0, .close = 15.0},
+        {.open = 15.0, .close = 13.0},
+        {.open = 13.0, .close = 12.0}
+    };
+    EXPECT_THROW(analyzer.moving_average(data,4,0) , std::runtime_error);
+}
+
+TEST(AnalyzerTests_MovingAverage, TooBigOffSet_ThrowRuntimeError) {
+
+    Analyzer analyzer;
+    const std::vector<StockRecord> data {
+        {.open = 10.0, .close = 15.0},
+        {.open = 15.0, .close = 13.0},
+        {.open = 13.0, .close = 12.0}
+    };
+    EXPECT_THROW(analyzer.moving_average(data,3,1) , std::runtime_error);
+}
+
+TEST(AnalyzerTests_MovingAverage, SkipsZeroRecords_CalculatesCorrectAverage) {
+
+    Analyzer analyzer;
+    const std::vector<StockRecord> data {
+        {.open = 10.0, .close = 15.0},
+        {.open = 0.0,  .close = 0.0},
+        {.open = 13.0, .close = 12.0}
+    };
+
+    EXPECT_DOUBLE_EQ(analyzer.moving_average(data, 2, 0), 12.5);
 }
