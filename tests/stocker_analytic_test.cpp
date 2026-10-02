@@ -250,3 +250,59 @@ TEST(AnalyzerTests_TrendSignal, BuyWithMC_Buy) {
     EXPECT_EQ(analyzer.trend_signal(data, {0.0, 80.0}), "BUY");
 }
 
+
+TEST(SimulatorTests_MonteCarlo, InvalidInputs_ThrowExceptions) {
+    
+    Simulator simulator;
+    std::vector<StockRecord> valid_data(100, StockRecord{.open = 100.0, .close = 100.0});
+
+    // Empty input vector
+    EXPECT_THROW(simulator.monte_carlo_GBM({}, 30, 1000), std::runtime_error);
+
+    // Number of simulations lower or equal to 0
+    EXPECT_THROW(simulator.monte_carlo_GBM(valid_data, 30, 0), std::invalid_argument);
+    EXPECT_THROW(simulator.monte_carlo_GBM(valid_data, 30, -100), std::invalid_argument);
+
+    // Number of days lower or equal to 0
+    EXPECT_THROW(simulator.monte_carlo_GBM(valid_data, 0, 1000), std::invalid_argument);
+    EXPECT_THROW(simulator.monte_carlo_GBM(valid_data, -5, 1000), std::invalid_argument);
+}
+
+
+TEST(SimulatorTests_MonteCarlo, ValidInput_MathsInvariants) {
+    
+    Simulator simulator;
+    std::vector<StockRecord> valid_data;
+    valid_data.reserve(100);
+    for (int i = 0; i < 100; ++i) {
+        double price = 100.0 + (i % 5) - 2.0; 
+        valid_data.push_back(StockRecord{.open = price, .close = price});
+    }
+    std::vector<double> results = simulator.monte_carlo_GBM(valid_data, 95, 2000);
+
+    ASSERT_EQ(results.size(), 4);
+
+    EXPECT_GE(results[1], 0.0);
+    EXPECT_LE(results[1], 100.0);
+
+    EXPECT_GE(results[0], results[2]);
+    EXPECT_LE(results[0], results[3]);
+}
+
+
+TEST(SimulatorTests_MonteCarlo, StrongUptrend_HighWinProbability) {
+    
+    Simulator simulator;
+    std::vector<StockRecord> valid_data {};
+    valid_data.reserve(100);
+    for(int i = 0; i < 100; ++i){
+        valid_data.push_back(StockRecord {.open = 100.0 + i, .close = 100.0 + i });
+    }
+
+    std::vector<double> results = simulator.monte_carlo_GBM(valid_data, 95, 2000);
+
+    ASSERT_EQ(results.size(), 4);
+
+    EXPECT_GE(results[1], 70.0);
+}
+
