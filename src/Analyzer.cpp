@@ -109,22 +109,23 @@ double Analyzer::calculate_standard_deviation(const std::vector<double>& data, d
     double variance = sum_sq / (data.size() - 1);
     return sqrt(variance);
 }
+
 std::string Analyzer::trend_signal(const std::vector<StockRecord>& records, const std::vector<double>& monte_carlo_result) const
 {
     int count = 0;
-    double moving_awerage_50 = moving_average(records, 50);
-    double moving_awerage_200 = moving_average(records, 200);
+    double moving_average_50 = moving_average(records, 50);
+    double moving_average_200 = moving_average(records, 200);
 
-    double diff = std::abs(moving_awerage_50 - moving_awerage_200);
+    double diff = std::abs(moving_average_50 - moving_average_200);
     double epsilon = records.rbegin()->close * 0.001;
     
     if (diff<epsilon) {
-        double moving_awerage_50_yesterday = moving_average(records, 50, 1);
-        double moving_awerage_200_yesterday = moving_average(records, 200, 1);
-        (moving_awerage_50_yesterday < moving_awerage_200_yesterday) ? count +=2 : count -= 2;
+        double moving_average_50_yesterday = moving_average(records, 50, 1);
+        double moving_average_200_yesterday = moving_average(records, 200, 1);
+        (moving_average_50_yesterday < moving_average_200_yesterday) ? count +=2 : count -= 2;
     }
     else {
-        (moving_awerage_50 > moving_awerage_200) ? ++count : --count;
+        (moving_average_50 > moving_average_200) ? ++count : --count;
     }
     double rsi = RSI(records);
     if (rsi > 70)
