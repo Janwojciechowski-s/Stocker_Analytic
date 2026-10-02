@@ -153,3 +153,38 @@ TEST(AnalyzerTests_RSI, TooFewRecords_ThrowRuntime_Error) {
     EXPECT_THROW(analyzer.RSI(data), std::runtime_error);
 }
 
+TEST(AnalyzerTests_RSI, ContainsZeroClosePrice_ThrowsRuntimeError) {
+    Analyzer analyzer;
+    std::vector<StockRecord> data(15, StockRecord{.close = 100.0});
+    data[7].close = 0.0; 
+
+    EXPECT_THROW(analyzer.RSI(data), std::runtime_error);
+}
+
+TEST(AnalyzerTests_CalculateStandardDeviation, ZeroVariance_ReturnsZero) {
+    Analyzer analyzer;
+    std::vector<double> data(3, 5.0);
+    
+    EXPECT_DOUBLE_EQ(analyzer.calculate_standard_deviation(data,5.0), 0.0);
+}
+
+TEST(AnalyzerTests_CalculateStandardDeviation, ValidInput_CorrectOutput) {
+    Analyzer analyzer;
+    std::vector<double> data {2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0};
+    
+    EXPECT_NEAR(analyzer.calculate_standard_deviation(data, 5.0), std::sqrt(32.0/7.0) , 0.001);
+}
+
+TEST(AnalyzerTests_CalculateStandardDeviation, EmptyInputVector_ThrowRuntimeError) {
+    Analyzer analyzer;
+    std::vector<double> data {}; 
+    
+    EXPECT_THROW(analyzer.calculate_standard_deviation(data,0.0), std::runtime_error);
+}
+
+TEST(AnalyzerTests_CalculateStandardDeviation, SingleElement_ThrowsRuntimeError) {
+    Analyzer analyzer;
+    std::vector<double> data {1.0}; 
+    
+    EXPECT_THROW(analyzer.calculate_standard_deviation(data,1.0), std::runtime_error);
+}
