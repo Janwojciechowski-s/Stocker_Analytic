@@ -12,6 +12,7 @@ TEST(AnalyzerTests_CalculateMean, ValidData_ReturnsCorrectMean) {
     EXPECT_DOUBLE_EQ(mean,3.0);
 }
 
+
 TEST(AnalyzerTests_CalculateMean, EmptyData_ThrowsInvalidArgument) {
     
     Analyzer analyzer;
@@ -19,6 +20,7 @@ TEST(AnalyzerTests_CalculateMean, EmptyData_ThrowsInvalidArgument) {
 
     EXPECT_THROW(analyzer.calculate_mean(data), std::invalid_argument);
 }
+
 
 TEST(AnalyzerTests_GetLogReturns, ValidData_ReturnZeroVector) {
     
@@ -50,6 +52,7 @@ TEST(AnalyzerTests_GetLogReturns, ValidData_ReturnCorrectLogVector){
     EXPECT_NEAR(result[0], std::log(2.0), 0.001);
 }
 
+
 TEST(AnalyzerTests_GetLogReturns, TooFewRecords_ThrowRuntimeError) {
 
     Analyzer analyzer;
@@ -60,6 +63,7 @@ TEST(AnalyzerTests_GetLogReturns, TooFewRecords_ThrowRuntimeError) {
 
     EXPECT_THROW(analyzer.get_log_returns(data, 2), std::runtime_error);
 }
+
 
 TEST(AnalyzerTests_MovingAverage, ValidData_ReturnCorrectMovingAverage) {
 
@@ -72,6 +76,7 @@ TEST(AnalyzerTests_MovingAverage, ValidData_ReturnCorrectMovingAverage) {
     EXPECT_DOUBLE_EQ(analyzer.moving_average(data,3,0) , 13);
 }
 
+
 TEST(AnalyzerTests_MovingAverage, TooFewRecords_ThrowRuntimeError) {
 
     Analyzer analyzer;
@@ -83,6 +88,7 @@ TEST(AnalyzerTests_MovingAverage, TooFewRecords_ThrowRuntimeError) {
     EXPECT_THROW(analyzer.moving_average(data,4,0) , std::runtime_error);
 }
 
+
 TEST(AnalyzerTests_MovingAverage, TooBigOffSet_ThrowRuntimeError) {
 
     Analyzer analyzer;
@@ -93,6 +99,7 @@ TEST(AnalyzerTests_MovingAverage, TooBigOffSet_ThrowRuntimeError) {
     };
     EXPECT_THROW(analyzer.moving_average(data,3,1) , std::runtime_error);
 }
+
 
 TEST(AnalyzerTests_MovingAverage, SkipsZeroRecords_CalculatesCorrectAverage) {
 
@@ -106,6 +113,7 @@ TEST(AnalyzerTests_MovingAverage, SkipsZeroRecords_CalculatesCorrectAverage) {
     EXPECT_DOUBLE_EQ(analyzer.moving_average(data, 2, 0), 12.5);
 }
 
+
 TEST(AnalyzerTests_RSI, GainVector_CalculatesFullRSI) {
 
     Analyzer analyzer;
@@ -118,6 +126,7 @@ TEST(AnalyzerTests_RSI, GainVector_CalculatesFullRSI) {
     EXPECT_DOUBLE_EQ(analyzer.RSI(data), 100.0);
 }
 
+
 TEST(AnalyzerTests_RSI, LoseVector_CalculatesZeroRSI) {
 
     Analyzer analyzer;
@@ -129,6 +138,7 @@ TEST(AnalyzerTests_RSI, LoseVector_CalculatesZeroRSI) {
 
     EXPECT_DOUBLE_EQ(analyzer.RSI(data), 0);
 }
+
 
 TEST(AnalyzerTests_RSI, ValidVector_CalculatesCorrectRSI) {
 
@@ -145,6 +155,7 @@ TEST(AnalyzerTests_RSI, ValidVector_CalculatesCorrectRSI) {
     EXPECT_DOUBLE_EQ(analyzer.RSI(data), 50);
 }
 
+
 TEST(AnalyzerTests_RSI, TooFewRecords_ThrowRuntime_Error) {
     Analyzer analyzer;
     std::vector<StockRecord> data {};
@@ -152,6 +163,7 @@ TEST(AnalyzerTests_RSI, TooFewRecords_ThrowRuntime_Error) {
     
     EXPECT_THROW(analyzer.RSI(data), std::runtime_error);
 }
+
 
 TEST(AnalyzerTests_RSI, ContainsZeroClosePrice_ThrowsRuntimeError) {
     Analyzer analyzer;
@@ -161,12 +173,14 @@ TEST(AnalyzerTests_RSI, ContainsZeroClosePrice_ThrowsRuntimeError) {
     EXPECT_THROW(analyzer.RSI(data), std::runtime_error);
 }
 
+
 TEST(AnalyzerTests_CalculateStandardDeviation, ZeroVariance_ReturnsZero) {
     Analyzer analyzer;
     std::vector<double> data(3, 5.0);
     
     EXPECT_DOUBLE_EQ(analyzer.calculate_standard_deviation(data,5.0), 0.0);
 }
+
 
 TEST(AnalyzerTests_CalculateStandardDeviation, ValidInput_CorrectOutput) {
     Analyzer analyzer;
@@ -175,6 +189,7 @@ TEST(AnalyzerTests_CalculateStandardDeviation, ValidInput_CorrectOutput) {
     EXPECT_NEAR(analyzer.calculate_standard_deviation(data, 5.0), std::sqrt(32.0/7.0) , 0.001);
 }
 
+
 TEST(AnalyzerTests_CalculateStandardDeviation, EmptyInputVector_ThrowRuntimeError) {
     Analyzer analyzer;
     std::vector<double> data {}; 
@@ -182,9 +197,56 @@ TEST(AnalyzerTests_CalculateStandardDeviation, EmptyInputVector_ThrowRuntimeErro
     EXPECT_THROW(analyzer.calculate_standard_deviation(data,0.0), std::runtime_error);
 }
 
+
 TEST(AnalyzerTests_CalculateStandardDeviation, SingleElement_ThrowsRuntimeError) {
     Analyzer analyzer;
     std::vector<double> data {1.0}; 
     
     EXPECT_THROW(analyzer.calculate_standard_deviation(data,1.0), std::runtime_error);
 }
+
+
+TEST(AnalyzerTests_TrendSignal, InsufficentData_ThrowsRuntimeError) {
+    Analyzer analyzer;
+    std::vector<StockRecord> data (100, StockRecord {});
+    std::vector<double> monte_carlo {100.0, 70.0};
+
+    EXPECT_THROW(analyzer.trend_signal(data,monte_carlo), std::runtime_error);
+}
+
+
+TEST(AnalyzerTests_TrendSignal, StrongSellWithoutMC_StrongSell) {
+    Analyzer analyzer;
+    std::vector<StockRecord> data (201, StockRecord {.open = 100.0, .close = 100.0});
+
+    EXPECT_EQ(analyzer.trend_signal(data, {}), "STRONG SELL");
+}
+
+
+TEST(AnalyzerTests_TrendSignal, StrongSellWithMC_StrongSell) {
+    Analyzer analyzer;
+    std::vector<StockRecord> data (201, StockRecord {.open = 100.0, .close = 100.0});
+
+    EXPECT_EQ(analyzer.trend_signal(data, {0.0, 50.0}), "STRONG SELL");
+}
+
+
+TEST(AnalyzerTests_TrendSignal, SellWithMC_Sell) {
+    Analyzer analyzer;
+    std::vector<StockRecord> data (201, StockRecord {.open = 100.0, .close = 100.0});
+
+    EXPECT_EQ(analyzer.trend_signal(data, {0.0, 70.0}), "SELL");
+}
+
+
+TEST(AnalyzerTests_TrendSignal, BuyWithMC_Buy) {
+    Analyzer analyzer;
+    std::vector<StockRecord> data {};
+    data.reserve(201);
+    for (int i = 0; i < 201; ++i){
+        data.push_back(StockRecord { .open = 100.0 + i, .close = 100.0 + i });
+    }
+
+    EXPECT_EQ(analyzer.trend_signal(data, {0.0, 80.0}), "BUY");
+}
+
