@@ -1,0 +1,12 @@
+services:
+  stocker-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: stocker-analytic:latest
+    container_name: stocker_analytic_container
+    ports:
+      - "18080:18080"
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
