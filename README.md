@@ -1,69 +1,62 @@
 # Stocker Analytic
 
-Program to analyze stock market data and simulate prices.
+High-performance C++ REST API service to analyze stock market data and run price simulations.
 
-**Status:** Working / Ready for Testing
+**Status:** Working / Tested
 
-## Progress
-- **Done:** Data from API (AlphaVantage)
-- **Done:** Data from CSV (JSON request)
-- **Done:** Moving averages and RSI
-- **Done:** Multithreaded Monte Carlo simulation (GBM Model)
-- **Done:** Sending results in JSON format
-- **To do:** Add collection of example queries and test datasets.
+## Features
+- **Data from API (AlphaVantage):** Fetches real-time stock quotes via HTTPS (`libcurl`).
+- **Data from CSV:** Parses CSV data sent directly in JSON requests.
+- **Technical Analysis:** Moving averages (SMA), RSI, market trends, and volatility.
+- **Monte Carlo Simulation:** Multithreaded price prediction using the Geometric Brownian Motion (GBM) model.
+- **REST API:** Lightweight HTTP service built with Crow, returning responses in JSON.
+- **Automated Testing:** 29 unit tests covering providers, analysis logic, and edge cases.
+- **Containerized:** Reproducible multi-stage Docker build verifying tests before production image creation.
 
 ## Architecture
-* **AnalysisManager**: Coordinates data flow between providers and workers.
-* **IDataProvider**: Main interface for data.
-* **NetworkDataProvider**: Gets data from API (server alphavantage) and parses.
-* **FileDataProvider**: Parses CSV data sent inside JSON requests.
-* **Analyzer**: Data analysis(Averages, RSI, Trends, Volatility).
-* **Simulator**: Monte Carlo simulation (Price prediction).
-* **JsonFormatter**: Prepares the final JSON response.
-* **StockRecord**: Basic structure for stock data.
+* **AnalysisManager**: Coordinates data flow between data providers and calculation modules.
+* **IDataProvider**: Abstract interface for fetching stock records.
+* **NetworkDataProvider**: Fetches and parses data from the AlphaVantage API.
+* **FileDataProvider**: Robust parser for CSV data sent inside JSON requests.
+* **Analyzer**: Computes statistical indicators (averages, RSI, trends, volatility).
+* **Simulator**: Multithreaded Monte Carlo simulation engine.
+* **JsonFormatter**: Prepares final JSON responses.
+* **StockRecord**: Core data structure representing an individual market data point.
 
-## Technologies
-* **Language**: modern C++
-* **Libraries**: Crow, libcurl, nlohmann/json
-* **Tools**: Visual Studio 2022, vcpkg
+## Technologies & Tools
+* **Language:** C++20
+* **Build System:** CMake (with `FetchContent` for external dependencies)
+* **Testing:** Google Test (GTest)
+* **Libraries:** Crow (HTTP Framework), libcurl, nlohmann/json, Asio
+* **DevOps:** Docker (Multi-stage build), Docker Compose
+* **Platform:** Linux (Ubuntu / WSL2)
 
-## How to run
-1. Open `stocker_analytic.sln` in Visual Studio.
-2. Visual Studio should automatically restore all libraries from vcpkg (ensure vcpkg is integrated and Manifest Mode is enabled).
-3. Press **F5** to start the server.
+## How to Run
 
-## Usage API Testing 
-*Note: This section is currently being updated. Comprehensive test datasets and example scripts will be available soon.*
+### Option 1: Docker Compose (Recommended)  
 
-Once the server is running (port 18080), you can send POST requests to `/analyze`. 
-Here are examples using **PowerShell** (recommended for Windows):
+Builds the multi-stage Docker image, runs all 29 unit tests, and exposes the application on port `18080`.
 
-Send stock data directly as a CSV string inside a JSON object:
+```bash
+docker compose up --build
+```
 
-1) Valid JSON request with CSV data parameter:
-   
-Invoke-RestMethod -Uri http://localhost:18080/analyze -Method Post -Body '{
-    "mode": "manual",
-    "csv_data": "timestamp,open,high,low,close,volume\n2024-03-20,150.0,155.0,149.0,153.5,100000\n2024-03-21,153.5,158.0,152.0,157.2,120000"
-}' -ContentType "application/json" | ConvertTo-Json
+### Option 2: Local Build (Linux / WSL2)
 
-2) Fetch real-time market data directly from Alpha Vantage. (Replace YOUR_API_KEY with your actual key)
-
-Invoke-RestMethod -Uri http://localhost:18080/analyze -Method Post -Body '{
-    "mode": "auto",
-    "ticker": "AAPL",
-    "api_key": "YOUR_API_KEY"
-}' -ContentType "application/json" | ConvertTo-Json
-
-3) Missing Parameters (Currently, the server returns a detailed error response):
-
-Invoke-RestMethod -Uri http://localhost:18080/analyze -Method Post -Body '{
-    "mode": "manual"
-}' -ContentType "application/json" | ConvertTo-Json
-
-4) Robustness: Fault-Tolerant Parsing:
-
-Invoke-RestMethod -Uri http://localhost:18080/analyze -Method Post -Body '{
-    "mode": "manual",
-    "csv_data": "timestamp,open,high,low,close,volume\n2024-03-20,150.0,155.0,149.0,153.5,100000\nWRONG_LINE\n2024-03-21,153.5,158.0,152.0,157.2,120000"
-}' -ContentType "application/json" | ConvertTo-Json
+Install the required dependencies:
+```bash
+sudo apt update && sudo apt install -y build-essential cmake git libcurl4-openssl-dev libasio-dev
+```
+Configure and build the project:
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+```
+Run the unit tests:
+```bash
+./build/tests/unit_test
+```
+Start the application:
+```bash
+./build/StockerAnalytic
+```
